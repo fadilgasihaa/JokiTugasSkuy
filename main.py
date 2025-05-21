@@ -1,44 +1,33 @@
+import os
 from telethon import TelegramClient, events
+from keep_alive import keep_alive
 
-# Konfigurasi API Telegram
-api_id = 28493263
-api_hash = '80fdcbe175839ab3542a719b51431ac9'
-session = 'session_telegram'
+# Mulai web server health-check
+keep_alive()
+
+# Baca konfigurasi dari env vars
+api_id      = int(os.getenv('TELEGRAM_API_ID', '0'))
+api_hash    = os.getenv('TELEGRAM_API_HASH', '')
+session     = os.getenv('TELEGRAM_SESSION', 'session_telegram')
+trigger_raw = os.getenv('TRIGGER_WORDS', 'segala bentuk penipuan,format')
+target_thread_id = int(os.getenv('TARGET_THREAD_ID', '11'))
+
+# Split comma-separated kata trigger jadi list
+trigger_words = [w.strip().lower() for w in trigger_raw.split(',')]
+
 client = TelegramClient(session, api_id, api_hash)
 
-# Pastikan semua kata trigger dalam huruf kecil
-trigger_words = ['segala bentuk penipuan', 'format']
-target_thread_id = 432187 # Ganti dengan ID topik yang benar
-
-@client.on(events.NewMessage(chats='@joki_tugas_skuy'))
+@client.on(events.NewMessage(chats='@testduulubang'))
 async def handler(event):
-    print("New message detected!")  # Log untuk mendeteksi pesan baru
-
-    # Ambil ID thread dengan aman, fallback ke atribut lain jika perlu
     thread_id = getattr(event.message, 'message_thread_id',
-                        getattr(event.message, 'thread_id', 432187))
-    print(f"Thread ID: {thread_id}")  # Log ID thread
-
+                        getattr(event.message, 'thread_id', target_thread_id))
     if thread_id != target_thread_id:
-        print("Thread ID tidak cocok. Pesan diabaikan.")
         return
-
     text = event.raw_text.lower()
-    print(f"Message text: {text}")  # Log isi pesan
-
     if any(w in text for w in trigger_words):
-        print("Trigger word detected!")  # Log jika kata kunci terdeteksi
         sender = await event.get_sender()
-        print(f"Sending message to {sender.id}")  # Log ID pengirim
         await client.send_message(sender.id, 'Bisa dijelaskan tugasnya kak? -Zifa')
 
 if __name__ == "__main__":
-    try:
-        print("Starting bot...")  # Log saat bot mulai
-        client.start()
-        print("Bot is running!")  # Log saat bot berjalan
-        client.run_until_disconnected()
-    except KeyboardInterrupt:
-        print("Stopping bot...")  # Log saat bot dihentikan
-    finally:
-        print("Bot stopped.")  # Log saat bot benar-benar berhenti
+    client.start()
+    client.run_until_disconnected()
