@@ -10,14 +10,14 @@ api_id      = int(os.getenv('TELEGRAM_API_ID', '0'))
 api_hash    = os.getenv('TELEGRAM_API_HASH', '')
 session     = os.getenv('TELEGRAM_SESSION', 'session_telegram')
 trigger_raw = os.getenv('TRIGGER_WORDS', 'segala bentuk penipuan,format')
-target_thread_id = int(os.getenv('TARGET_THREAD_ID', '11'))
+target_thread_id = int(os.getenv('TARGET_THREAD_ID', '32187'))
 
 # Split comma-separated kata trigger jadi list
 trigger_words = [w.strip().lower() for w in trigger_raw.split(',')]
 
 client = TelegramClient(session, api_id, api_hash)
 
-@client.on(events.NewMessage(chats='@testduulubang'))
+@client.on(events.NewMessage(chats='@joki_tugas_skuy'))
 async def handler(event):
     thread_id = getattr(event.message, 'message_thread_id',
                         getattr(event.message, 'thread_id', target_thread_id))
